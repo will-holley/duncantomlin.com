@@ -16,41 +16,46 @@ const initCanvas = () => {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas, false);
 
-  const maxx = canvas.width;
-  const maxy = canvas.height;
+  let maxx = canvas.width;
+  let maxy = canvas.height;
   const total = 100;
   const particles = new Array(total);
 
   function animate() {
-    for (let i = 0; i < total; i += 1) {
-      const particle = particles[i];
+    maxx = canvas.width;
+    maxy = canvas.height;
+    // eslint-disable-next-line no-restricted-syntax
+    for (const particle of particles) {
       const dx = particle.left - mouse_pos.x;
       const dy = particle.top - mouse_pos.y;
-      let { vx, vy } = particle;
+      let { vx, vy, ax, ay } = particle; // consider switching coordinate systems to v, theta
 
-      // limit acceleration
-      if (dx * dx + dy * dy <= 10000) {
-        vx += dx * 0.1;
-        vy += dy * 0.1;
+      // limit distance to cursor
+      if (dx * dx + dy * dy <= 100000) {
+        ax += dx * 0.01;
+        ay += dy * 0.01;
       }
 
-      vx *= 0.99;
-      vy *= 0.99;
+      // center gravity
+      const dxCenter = (maxx / 2 - particle.left) / maxx;
+      const dyCenter = (maxy / 2 - particle.top) / maxy;
 
-      vx += Math.random() - 0.5;
-      vy += Math.random() - 0.5;
+      ax = ax * 0.99 + 0.25 * dxCenter + 0.05 * (Math.random() - 0.5);
+      ay = ay * 0.99 + 0.25 * dyCenter + 0.05 * (Math.random() - 0.5);
 
+      vx = vx * 0.99 + (ax > 0 ? ax * ax : -ax * ax);
+      vy = vy * 0.99 + (ay > 0 ? ay * ay : -ay * ay);
       particle.left += vx;
       particle.top += vy;
 
-      const x = particle.left;
-      const y = particle.top;
-
+      if (particle.top > maxy || particle.top < 0) particle.ay = -particle.ay;
+      if (particle.left > maxx || particle.left < 0) particle.ax = -particle.ax;
+      /*
       if (x < 0 || x > maxx || y < 0 || y > maxy) {
         const r = Math.atan2(y - maxy / 2, x - maxx / 2);
         vx = -Math.cos(r);
         vy = -Math.sin(r);
-      }
+      } */
 
       particle.vx = vx;
       particle.vy = vy;
@@ -62,15 +67,17 @@ const initCanvas = () => {
 
   function loadCursors(img) {
     for (let i = 0; i < total; i += 1) {
-      const randomCursor = new fabric.Image(img.getElement(), {
+      const particle = new fabric.Image(img.getElement(), {
         left: Math.random() * maxx,
         top: Math.random() * maxy,
         selectable: false,
       });
-      randomCursor.vx = 0;
-      randomCursor.vy = 0;
-      canvas.add(randomCursor);
-      particles[i] = randomCursor;
+      particle.vx = 0;
+      particle.vy = 0;
+      particle.ax = 0.1 * (Math.random() - 0.5);
+      particle.ay = 0.1 * (Math.random() - 0.5);
+      canvas.add(particle);
+      particles[i] = particle;
     }
     animate();
   }
