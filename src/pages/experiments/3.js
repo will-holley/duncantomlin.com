@@ -18,32 +18,33 @@ const initCanvas = () => {
 
   const maxx = canvas.width;
   const maxy = canvas.height;
-  const total = 1000;
+  const total = 100;
   const particles = new Array(total);
 
   function animate() {
     for (let i = 0; i < total; i += 1) {
-      const blob = particles[i];
-      const dx = blob.left - mouse_pos.x;
-      const dy = blob.top - mouse_pos.y;
-      let { vx } = blob;
-      let { vy } = blob;
+      const particle = particles[i];
+      const dx = particle.left - mouse_pos.x;
+      const dy = particle.top - mouse_pos.y;
+      let { vx, vy } = particle;
 
+      // limit acceleration
       if (dx * dx + dy * dy <= 10000) {
-        vx += dx * 0.01;
-        vy += dy * 0.01;
+        vx += dx * 0.1;
+        vy += dy * 0.1;
       }
-      vx *= 0.95;
-      vy *= 0.95;
+
+      vx *= 0.99;
+      vy *= 0.99;
 
       vx += Math.random() - 0.5;
       vy += Math.random() - 0.5;
 
-      blob.left += vx;
-      blob.top += vy;
+      particle.left += vx;
+      particle.top += vy;
 
-      const x = blob.left;
-      const y = blob.top;
+      const x = particle.left;
+      const y = particle.top;
 
       if (x < 0 || x > maxx || y < 0 || y > maxy) {
         const r = Math.atan2(y - maxy / 2, x - maxx / 2);
@@ -51,8 +52,8 @@ const initCanvas = () => {
         vy = -Math.sin(r);
       }
 
-      blob.vx = vx;
-      blob.vy = vy;
+      particle.vx = vx;
+      particle.vy = vy;
     }
 
     fabric.util.requestAnimFrame(animate, canvas.getElement());
