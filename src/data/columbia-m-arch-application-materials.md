@@ -1,3 +1,0 @@
-# Columbia
-
-TODO Add content
